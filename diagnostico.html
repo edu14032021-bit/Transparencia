@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Diagnóstico PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
+    body{min-height:100vh;background:linear-gradient(135deg,#100f2e,#30206f,#7c3aed);color:#fff;padding:18px}
+    .box{max-width:720px;margin:0 auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:24px;padding:22px;box-shadow:0 20px 55px rgba(0,0,0,.28)}
+    h1{font-size:26px;margin-bottom:8px}.lead{color:#dbeafe;margin-bottom:18px;line-height:1.5}
+    .item{display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:16px;background:rgba(15,23,42,.34);border:1px solid rgba(255,255,255,.12);margin-bottom:10px}
+    .ok{color:#86efac}.bad{color:#fecaca}.warn{color:#fde68a}.label{font-weight:800}.text{color:#e0e7ff;font-size:14px;line-height:1.4;word-break:break-word}
+    .btns{display:grid;grid-template-columns:1fr;gap:10px;margin-top:18px}button,a{border:none;text-decoration:none;text-align:center;padding:13px 16px;border-radius:999px;font-weight:900;cursor:pointer}.primary{background:#22c55e;color:#052e16}.secondary{background:#e2e8f0;color:#0f172a}
+    pre{white-space:pre-wrap;background:#020617;color:#dbeafe;padding:12px;border-radius:14px;overflow:auto;margin-top:12px;font-size:12px}
+  </style>
+</head>
+<body>
+  <main class="box">
+    <h1>Diagnóstico PWA</h1>
+    <p class="lead">Esta tela verifica os pontos que o Chrome Android usa para liberar a instalação do app.</p>
+    <div id="results"></div>
+    <div class="btns">
+      <button class="primary" onclick="registrarServiceWorker()">Registrar/atualizar Service Worker</button>
+      <button class="secondary" onclick="limparCache()">Limpar cache do app</button>
+      <a class="secondary" href="./">Voltar ao painel</a>
+    </div>
+    <pre id="log"></pre>
+  </main>
+
+  <script>
+    const results = document.getElementById('results');
+    const logBox = document.getElementById('log');
+    let logs = [];
+    let bipFired = false;
+
+    function log(msg){ logs.push(msg); logBox.textContent = logs.join('\n'); }
+    function item(status,label,text){
+      const icon = status === 'ok' ? '✅' : status === 'warn' ? '⚠️' : '❌';
+      return `<div class="item"><div class="${status}">${icon}</div><div><div class="label">${label}</div><div class="text">${text}</div></div></div>`;
+    }
+
+    window.addEventListener('beforeinstallprompt', e => {
+      bipFired = true;
+      log('beforeinstallprompt: disparou. O Chrome considera o app instalável.');
+      e.preventDefault();
+      atualizar();
+    });
+
+    async function checarManifest(){
+      try{
+        const res = await fetch('./manifest.json', {cache:'no-store'});
+        if(!res.ok) return {ok:false, text:`manifest.json retornou HTTP ${res.status}`};
+        const data = await res.json();
+        const iconsOk = Array.isArray(data.icons) && data.icons.some(i => String(i.sizes).includes('192')) && data.icons.some(i => String(i.sizes).includes('512'));
+        const fieldsOk = !!data.name && !!data.short_name && !!data.start_url && !!data.display;
+        return {ok: fieldsOk && iconsOk, text:`Manifest carregado. display=${data.display}, start_url=${data.start_url}, icons=${data.icons?.length || 0}`};
+      }catch(e){ return {ok:false, text:'Erro ao carregar manifest.json: '+e.message}; }
+    }
+
+    async function checarSW(){
+      if(!('serviceWorker' in navigator)) return {ok:false, text:'Este navegador não suporta Service Worker.'};
+      try{
+        const reg = await navigator.serviceWorker.getRegistration('./');
+        if(!reg) return {ok:false, text:'Service Worker ainda não registrado.'};
+        return {ok:true, text:'Service Worker registrado no escopo: '+reg.scope};
+      }catch(e){ return {ok:false, text:'Erro ao verificar Service Worker: '+e.message}; }
+    }
+
+    async function registrarServiceWorker(){
+      if(!('serviceWorker' in navigator)){ alert('Service Worker não suportado neste navegador.'); return; }
+      try{
+        const reg = await navigator.serviceWorker.register('./service-worker.js', {scope:'./'});
+        await reg.update();
+        await navigator.serviceWorker.ready;
+        log('Service Worker registrado/atualizado: '+reg.scope);
+        alert('Service Worker atualizado. Agora recarregue a página principal e tente instalar novamente.');
+        atualizar();
+      }catch(e){ log('Erro SW: '+e.message); alert('Erro ao registrar Service Worker: '+e.message); }
+    }
+
+    async function limparCache(){
+      try{
+        if('serviceWorker' in navigator){
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
+        }
+        if('caches' in window){
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        alert('Cache limpo. Feche e abra o Chrome, depois acesse o link novamente.');
+        location.reload();
+      }catch(e){ alert('Erro ao limpar cache: '+e.message); }
+    }
+
+    async function atualizar(){
+      const secure = location.protocol === 'https:' || location.hostname === 'localhost';
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const manifest = await checarManifest();
+      const sw = await checarSW();
+      const ua = navigator.userAgent;
+
+      results.innerHTML = ''+
+        item(secure?'ok':'bad','HTTPS', secure ? 'OK: o site está em ambiente seguro.' : 'ERRO: precisa abrir pelo link HTTPS do GitHub Pages, não por arquivo local nem pela tela de código do GitHub.')+
+        item(manifest.ok?'ok':'bad','Manifest', manifest.text)+
+        item(sw.ok?'ok':'bad','Service Worker', sw.text)+
+        item(standalone?'ok':(bipFired?'ok':'warn'),'Instalação', standalone ? 'O app já parece estar aberto em modo instalado.' : (bipFired ? 'O Chrome liberou a instalação.' : 'O evento de instalação ainda não disparou. Aguarde 30 segundos, recarregue e confira o menu ⋮ do Chrome.'))+
+        item('warn','Navegador', ua);
+    }
+
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./service-worker.js', {scope:'./'}).then(()=>navigator.serviceWorker.ready).then(()=>atualizar()).catch(e=>{log(e.message); atualizar();});
+    } else {
+      atualizar();
+    }
+    setTimeout(atualizar, 3000);
+    setTimeout(atualizar, 10000);
+  </script>
+</body>
+</html>
