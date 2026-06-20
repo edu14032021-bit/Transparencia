@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Painel de Acessos</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="background-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Painel de Acessos">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <style>
+    :root {
+      --bg-1: #100f2e;
+      --bg-2: #30206f;
+      --bg-3: #7c3aed;
+      --card-border: rgba(255, 255, 255, 0.22);
+      --text: #ffffff;
+      --muted: #dbeafe;
+      --green: #22c55e;
+      --dark: #0f172a;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+      --radius: 28px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(168, 85, 247, 0.55), transparent 34%),
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.45), transparent 35%),
+        radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.18), transparent 32%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
+      padding: 24px;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1250px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+      padding: 18px 20px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(15, 23, 42, 0.32);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 26px;
+      box-shadow: 0 16px 45px rgba(0,0,0,0.20);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(34,197,94,0.95), rgba(59,130,246,0.95));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 28px rgba(34,197,94,0.26);
+      font-size: 26px;
+      font-weight: 900;
+    }
+
+    .brand-text h1 {
+      font-size: 25px;
+      line-height: 1.1;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-text p {
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .date-chip,
+    .install-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 11px 15px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.11);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #f8fafc;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .install-btn {
+      border: none;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #052e16;
+      font-weight: 900;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 10px 24px rgba(34, 197, 94, 0.25);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 28px;
+    }
+
+    .hero-main,
+    .hero-side {
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-main {
+      padding: 30px;
+    }
+
+    .hero-main::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      top: -80px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.22);
+      filter: blur(8px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.14);
+      border: 1px solid rgba(134,239,172,0.32);
+      color: #bbf7d0;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .hero-main h2 {
+      font-size: 42px;
+      line-height: 1.05;
+      letter-spacing: -1.5px;
+      max-width: 680px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-main p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #e0e7ff;
+      max-width: 650px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-side {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .side-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(15,23,42,0.28);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .search-box {
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      height: 58px;
+      border: 1px solid rgba(255,255,255,0.20);
+      outline: none;
+      border-radius: 22px;
+      padding: 0 20px 0 54px;
+      background: rgba(15,23,42,0.32);
+      color: #ffffff;
+      font-size: 15px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 14px 35px rgba(0,0,0,0.18);
+    }
+
+    .search-box input::placeholder {
+      color: #cbd5e1;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      opacity: 0.9;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      min-height: 390px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.09));
+      border: 1px solid var(--card-border);
+      border-radius: 30px;
+      padding: 26px 20px 22px;
+      text-align: center;
+      color: #fff;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.26);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      cursor: pointer;
+      overflow: hidden;
+      user-select: none;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.22), transparent 38%);
+      opacity: 0;
+      transition: 0.25s ease;
+      pointer-events: none;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+      border-color: rgba(255, 255, 255, 0.42);
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .card-tag {
+      align-self: flex-start;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.14);
+      border: 1px solid rgba(134,239,172,0.25);
+      color: #bbf7d0;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-area {
+      width: 132px;
+      height: 132px;
+      margin: 0 auto 21px;
+      background: #ffffff;
+      border-radius: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px;
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,0.05),
+        0 18px 35px rgba(0,0,0,0.24);
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      border-radius: 16px;
+    }
+
+    .logo-fnde { transform: scale(1.30); }
+    .logo-bb { transform: scale(1.42); }
+    .logo-egestor { transform: scale(1.16); }
+    .logo-fns { transform: scale(1.34); }
+
+    .fallback-logo {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f766e, #22c55e);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 900;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .card h3 {
+      font-size: 25px;
+      margin-bottom: 12px;
+      font-weight: 900;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: #edf2ff;
+      margin-bottom: 22px;
+      line-height: 1.45;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 220px;
+      min-height: 48px;
+      margin: auto auto 0;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #052e16;
+      padding: 13px 22px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 15px;
+      transition: 0.25s ease;
+      box-shadow: 0 12px 26px rgba(34, 197, 94, 0.30);
+      text-align: center;
+      align-self: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card:hover .btn {
+      background: linear-gradient(135deg, #86efac, #22c55e);
+      box-shadow: 0 15px 32px rgba(134, 239, 172, 0.34);
+      transform: translateY(-2px);
+    }
+
+    .viewer {
+      display: none;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .viewer.tela-cheia {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 99999;
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      background: #ffffff;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    .viewer-header {
+      height: 54px;
+      min-height: 54px;
+      background: #0f172a;
+      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .viewer-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #e5e7eb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .viewer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-shrink: 0;
+    }
+
+    .action-btn {
+      border: none;
+      min-height: 38px;
+      padding: 0 15px;
+      border-radius: 999px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.25s ease;
+      font-size: 13px;
+      white-space: nowrap;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .back-btn {
+      background: #e2e8f0;
+      color: #0f172a;
+      box-shadow: 0 8px 20px rgba(226, 232, 240, 0.16);
+    }
+
+    .action-btn:active { transform: scale(0.96); }
+
+    iframe {
+      width: 100%;
+      height: 75vh;
+      border: none;
+      background: #fff;
+      display: block;
+    }
+
+    .viewer.tela-cheia iframe {
+      height: calc(100vh - 54px);
+      height: calc(100dvh - 54px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 54px 0 0 0;
+      z-index: 100000;
+      background:
+        radial-gradient(circle at top, rgba(124,58,237,0.28), transparent 38%),
+        #ffffff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      color: #0f172a;
+    }
+
+    .loading-overlay.active { display: flex; }
+
+    .loading-box {
+      width: 100%;
+      max-width: 360px;
+      padding: 28px 24px;
+      border-radius: 28px;
+      background: #ffffff;
+      box-shadow: 0 18px 55px rgba(15, 23, 42, 0.18);
+      border: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    .loader {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 5px solid #e5e7eb;
+      border-top-color: #22c55e;
+      margin: 0 auto 18px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-box h3 {
+      font-size: 21px;
+      margin-bottom: 8px;
+      color: #0f172a;
+    }
+
+    .loading-box p {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #475569;
+    }
+
+    .loading-progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    .loading-progress span {
+      display: block;
+      height: 100%;
+      width: 45%;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      animation: progress 1.1s ease-in-out infinite alternate;
+    }
+
+    @keyframes progress {
+      from { transform: translateX(-70%); }
+      to { transform: translateX(170%); }
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 34px;
+      font-size: 13px;
+      color: #e0e7ff;
+      opacity: 0.9;
+    }
+
+    .hidden { display: none !important; }
+
+    .empty-result {
+      display: none;
+      padding: 22px;
+      border-radius: 24px;
+      background: rgba(15,23,42,0.32);
+      border: 1px solid rgba(255,255,255,0.18);
+      text-align: center;
+      color: #e0e7ff;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .hero { grid-template-columns: 1fr; }
+      .hero-main h2 { font-size: 36px; }
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px;
+        border-radius: 24px;
+      }
+      .brand-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
+      }
+      .brand-text h1 { font-size: 21px; }
+      .top-actions { width: 100%; }
+      .date-chip, .install-btn { width: 100%; }
+      .hero-main { padding: 24px 20px; }
+      .hero-main h2 {
+        font-size: 31px;
+        letter-spacing: -1px;
+      }
+      .hero-main p { font-size: 14px; }
+      .hero-side { padding: 20px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .search-box input {
+        height: 56px;
+        border-radius: 20px;
+        font-size: 14px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .card {
+        min-height: 360px;
+        padding: 24px 18px 20px;
+        border-radius: 26px;
+      }
+      .logo-area {
+        width: 122px;
+        height: 122px;
+        border-radius: 30px;
+        margin-bottom: 18px;
+      }
+      .card h3 { font-size: 24px; }
+      .card p { font-size: 14px; }
+      .btn {
+        max-width: 240px;
+        min-height: 50px;
+        font-size: 15px;
+      }
+      .viewer-header {
+        height: 48px;
+        min-height: 48px;
+        padding: 5px 8px;
+        gap: 8px;
+      }
+      .viewer-title {
+        font-size: 12px;
+        max-width: calc(100vw - 120px);
+      }
+      .action-btn {
+        min-height: 36px;
+        padding: 0 13px;
+        font-size: 12px;
+      }
+      .viewer.tela-cheia iframe {
+        height: calc(100vh - 48px);
+        height: calc(100dvh - 48px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
+      .loading-overlay { inset: 48px 0 0 0; }
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 13px; }
+      .brand-text h1 { font-size: 19px; }
+      .brand-text p { font-size: 12px; }
+      .hero-main h2 { font-size: 28px; }
+      .stats { grid-template-columns: 1fr; }
+      .card { min-height: 350px; }
+      .logo-area {
+        width: 112px;
+        height: 112px;
+      }
+      .logo-fnde { transform: scale(1.34); }
+      .logo-bb { transform: scale(1.46); }
+      .logo-egestor { transform: scale(1.18); }
+      .logo-fns { transform: scale(1.38); }
+      .viewer-header {
+        height: 46px;
+        min-height: 46px;
+      }
+      .viewer-title {
+        font-size: 11px;
+        max-width: calc(100vw - 110px);
+      }
+      .action-btn {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 11px;
+      }
+      .viewer.tela-cheia iframe {
+        height: calc(100vh - 46px);
+        height: calc(100dvh - 46px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
+      .loading-overlay { inset: 46px 0 0 0; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="app">
+
+    <header class="topbar" id="topHeader">
+      <div class="brand">
+        <div class="brand-icon">↗</div>
+        <div class="brand-text">
+          <h1>Painel de Acessos</h1>
+          <p>Central rápida para sistemas institucionais</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="install-btn" id="installBtn" onclick="instalarApp()">Instalar app</button>
+        <div class="date-chip" id="dateChip">📅 Carregando data...</div>
+      </div>
+    </header>
+
+    <section class="hero" id="heroArea">
+      <div class="hero-main">
+        <div class="eyebrow">● Sistemas disponíveis</div>
+        <h2>Organize seus acessos em um painel bonito e profissional.</h2>
+        <p>
+          Acesse rapidamente FNDE, Repasse BB, E-Gestor e Consulta FNS em uma interface moderna,
+          responsiva, instalável e otimizada para computador e celular.
+        </p>
+      </div>
+
+      <aside class="hero-side">
+        <div class="side-title">Resumo do painel</div>
+
+        <div class="stats">
+          <div class="stat">
+            <strong>4</strong>
+            <span>Sistemas</span>
+          </div>
+
+          <div class="stat">
+            <strong>PWA</strong>
+            <span>Instalável no celular</span>
+          </div>
+        </div>
+
+        <div class="side-title">Modo de abertura</div>
+        <div class="stat">
+          <strong>Full</strong>
+          <span>Abre em tela cheia dentro do site</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="search-box" id="searchArea">
+      <span class="search-icon">🔎</span>
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Pesquisar sistema: FNDE, Repasse BB, E-Gestor ou Consulta FNS..."
+        oninput="filtrarCards()"
+      >
+    </section>
+
+    <div class="empty-result" id="emptyResult">
+      Nenhum sistema encontrado com esse nome.
+    </div>
+
+    <section class="grid" id="cardsArea">
+
+      <div 
+        class="card" 
+        data-title="fnde liberações educação"
+        onclick="abrirSistema('FNDE', 'https://www.fnde.gov.br/pls/simad/internet_fnde.liberacoes_01_pc')"
+      >
+        <div class="card-tag">EDUCAÇÃO</div>
+
+        <div class="logo-area">
+          <img 
+            class="logo-fnde"
+            src="https://drive.google.com/thumbnail?id=1-RVMm28-WYRd4zY8WXpwBEqZw9KQlj4V&sz=w1200" 
+            alt="FNDE"
+            loading="lazy"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          >
+          <div class="fallback-logo">FNDE</div>
+        </div>
+
+        <h3>FNDE</h3>
+        <p>Consulta de liberações e informações do Fundo Nacional de Desenvolvimento da Educação.</p>
+        <span class="btn">Acessar →</span>
+      </div>
+
+      <div 
+        class="card" 
+        data-title="repasse bb banco do brasil arrecadação federal demonstrativos"
+        onclick="abrirSistema('Repasse BB', 'https://demonstrativos.apps.bb.com.br/arrecadacao-federal')"
+      >
+        <div class="card-tag">FINANCEIRO</div>
+
+        <div class="logo-area">
+          <img 
+            class="logo-bb"
+            src="https://drive.google.com/thumbnail?id=1z32MJDS8M7_9VV56SWXQI5C-WvIDN8sJ&sz=w1200" 
+            alt="Repasse BB"
+            loading="lazy"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          >
+          <div class="fallback-logo">BB</div>
+        </div>
+
+        <h3>Repasse BB</h3>
+        <p>Consulta de demonstrativos, repasses e arrecadação federal pelo Banco do Brasil.</p>
+        <span class="btn">Acessar →</span>
+      </div>
+
+      <div 
+        class="card" 
+        data-title="egestor e gestor aps saúde relatórios atenção primária"
+        onclick="abrirSistema('E-Gestor', 'https://relatorioaps.saude.gov.br/')"
+      >
+        <div class="card-tag">SAÚDE</div>
+
+        <div class="logo-area">
+          <img 
+            class="logo-egestor"
+            src="https://drive.google.com/thumbnail?id=1Seu4n2rxgtuBN657jA1o3FXSzPYIYabz&sz=w1200" 
+            alt="E-Gestor"
+            loading="lazy"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          >
+          <div class="fallback-logo">E-Gestor</div>
+        </div>
+
+        <h3>E-Gestor</h3>
+        <p>Relatórios da Atenção Primária à Saúde em ambiente digital oficial.</p>
+        <span class="btn">Acessar →</span>
+      </div>
+
+      <div 
+        class="card" 
+        data-title="consulta fns fundo nacional de saúde repasses consolidada"
+        onclick="abrirSistema('Consulta FNS', 'https://consultafns.saude.gov.br/#/consolidada')"
+      >
+        <div class="card-tag">REPASSES</div>
+
+        <div class="logo-area">
+          <img 
+            class="logo-fns"
+            src="https://drive.google.com/thumbnail?id=15ymOmVSkAbQiM7ofoBeicn2D3VM6Lk08&sz=w1200" 
+            alt="Consulta FNS"
+            loading="lazy"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          >
+          <div class="fallback-logo">FNS</div>
+        </div>
+
+        <h3>Consulta FNS</h3>
+        <p>Consulta consolidada de repasses do Fundo Nacional de Saúde.</p>
+        <span class="btn">Acessar →</span>
+      </div>
+
+    </section>
+
+    <section class="viewer" id="viewerArea">
+      <div class="viewer-header">
+        <div class="viewer-actions">
+          <button class="action-btn back-btn" onclick="voltarPainel()">← Voltar</button>
+        </div>
+
+        <div class="viewer-title" id="viewerTitle">Sistema</div>
+      </div>
+
+      <iframe id="siteFrame" src="" onload="finalizarCarregamento()"></iframe>
+    </section>
+
+    <section class="loading-overlay" id="loadingOverlay">
+      <div class="loading-box">
+        <div class="loader"></div>
+        <h3 id="loadingTitle">Carregando sistema...</h3>
+        <p id="loadingText">Aguarde alguns segundos enquanto o acesso é aberto.</p>
+        <div class="loading-progress">
+          <span></span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer" id="footerArea">
+      © 2026 - Painel de Acessos Institucionais
+    </footer>
+
+  </main>
+
+  <script>
+    let loadingTimer = null;
+    let deferredPrompt = null;
+
+    function atualizarData() {
+      const dateChip = document.getElementById("dateChip");
+
+      const agora = new Date();
+
+      const dataFormatada = agora.toLocaleDateString("pt-BR", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+
+      dateChip.innerHTML = "📅 " + dataFormatada;
+    }
+
+    function abrirSistema(nome, url) {
+      const viewer = document.getElementById("viewerArea");
+      const loadingOverlay = document.getElementById("loadingOverlay");
+      const loadingTitle = document.getElementById("loadingTitle");
+      const loadingText = document.getElementById("loadingText");
+      const iframe = document.getElementById("siteFrame");
+
+      document.getElementById("viewerTitle").innerText = nome;
+
+      document.getElementById("cardsArea").style.display = "none";
+      document.getElementById("topHeader").style.display = "none";
+      document.getElementById("heroArea").style.display = "none";
+      document.getElementById("searchArea").style.display = "none";
+      document.getElementById("emptyResult").style.display = "none";
+      document.getElementById("footerArea").style.display = "none";
+
+      viewer.style.display = "block";
+      viewer.classList.add("tela-cheia");
+
+      document.body.style.overflow = "hidden";
+
+      loadingTitle.innerText = "Carregando " + nome + "...";
+      loadingText.innerText = "Aguarde alguns segundos enquanto o sistema é aberto.";
+      loadingOverlay.classList.add("active");
+
+      clearTimeout(loadingTimer);
+
+      loadingTimer = setTimeout(() => {
+        loadingText.innerText = "Ainda carregando... Alguns sistemas podem demorar ou bloquear abertura dentro do painel.";
+      }, 9000);
+
+      iframe.src = url;
+    }
+
+    function finalizarCarregamento() {
+      clearTimeout(loadingTimer);
+
+      setTimeout(() => {
+        document.getElementById("loadingOverlay").classList.remove("active");
+      }, 500);
+    }
+
+    function voltarPainel() {
+      const viewer = document.getElementById("viewerArea");
+      const iframe = document.getElementById("siteFrame");
+
+      clearTimeout(loadingTimer);
+
+      document.getElementById("loadingOverlay").classList.remove("active");
+
+      iframe.src = "";
+
+      viewer.classList.remove("tela-cheia");
+      viewer.style.display = "none";
+
+      document.getElementById("cardsArea").style.display = "grid";
+      document.getElementById("topHeader").style.display = "flex";
+      document.getElementById("heroArea").style.display = "grid";
+      document.getElementById("searchArea").style.display = "block";
+      document.getElementById("footerArea").style.display = "block";
+
+      document.body.style.overflow = "auto";
+
+      filtrarCards();
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    function filtrarCards() {
+      const termo = document.getElementById("searchInput").value.toLowerCase().trim();
+      const cards = document.querySelectorAll(".card");
+      const emptyResult = document.getElementById("emptyResult");
+
+      let encontrados = 0;
+
+      cards.forEach(card => {
+        const titulo = card.getAttribute("data-title").toLowerCase();
+        const texto = card.innerText.toLowerCase();
+
+        if (titulo.includes(termo) || texto.includes(termo)) {
+          card.classList.remove("hidden");
+          encontrados++;
+        } else {
+          card.classList.add("hidden");
+        }
+      });
+
+      emptyResult.style.display = encontrados === 0 ? "block" : "none";
+    }
+
+    window.addEventListener("beforeinstallprompt", function(event) {
+      event.preventDefault();
+      deferredPrompt = event;
+
+      const installBtn = document.getElementById("installBtn");
+      installBtn.style.display = "flex";
+    });
+
+    async function instalarApp() {
+      if (!deferredPrompt) {
+        alert("A instalação ainda não está disponível. Tente novamente após alguns segundos ou recarregue a página.");
+        return;
+      }
+
+      deferredPrompt.prompt();
+
+      const escolha = await deferredPrompt.userChoice;
+
+      if (escolha.outcome === "accepted") {
+        document.getElementById("installBtn").style.display = "none";
+      }
+
+      deferredPrompt = null;
+    }
+
+    window.addEventListener("appinstalled", function() {
+      document.getElementById("installBtn").style.display = "none";
+      deferredPrompt = null;
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function() {
+        navigator.serviceWorker.register("./service-worker.js")
+          .then(() => {
+            console.log("Service Worker registrado com sucesso.");
+          })
+          .catch((error) => {
+            console.log("Erro ao registrar Service Worker:", error);
+          });
+      });
+    }
+
+    atualizarData();
+  </script>
+
+</body>
+</html>
