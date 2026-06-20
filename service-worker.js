@@ -1,4 +1,4 @@
-const CACHE_NAME = "painel-acessos-v1";
+const CACHE_NAME = "painel-acessos-v2";
 
 const APP_SHELL = [
   "./",
@@ -33,31 +33,22 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const request = event.request;
 
-  if (request.method !== "GET") {
-    return;
-  }
+  if (request.method !== "GET") return;
 
   const url = new URL(request.url);
 
-  if (url.origin !== self.location.origin) {
-    return;
-  }
+  if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then(response => {
           const copy = response.clone();
-
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, copy);
-          });
-
+          caches.open(CACHE_NAME).then(cache => cache.put("./", copy));
           return response;
         })
         .catch(() => caches.match("./offline.html"))
     );
-
     return;
   }
 
@@ -65,11 +56,7 @@ self.addEventListener("fetch", event => {
     caches.match(request).then(cached => {
       return cached || fetch(request).then(response => {
         const copy = response.clone();
-
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(request, copy);
-        });
-
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
         return response;
       });
     })
