@@ -1,14 +1,17 @@
 {
+  "id": "./",
   "name": "Painel de Acessos Institucionais",
   "short_name": "Acessos",
   "description": "Painel rápido para acesso aos sistemas FNDE, Repasse BB, E-Gestor e Consulta FNS.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "lang": "pt-BR",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icons/icon-192.png",
